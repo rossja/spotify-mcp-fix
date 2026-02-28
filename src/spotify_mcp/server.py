@@ -25,11 +25,18 @@ def setup_logger():
 
 
 logger = setup_logger()
-if spotify_api.REDIRECT_URI:
-    spotify_api.REDIRECT_URI = normalize_redirect_uri(spotify_api.REDIRECT_URI)
-spotify_client = spotify_api.Client(logger)
-
 server = Server("spotify-mcp")
+
+_spotify_client = None
+
+def get_spotify_client():
+    """Lazy initialization of Spotify client. Only created on first tool call."""
+    global _spotify_client
+    if _spotify_client is None:
+        if spotify_api.REDIRECT_URI:
+            spotify_api.REDIRECT_URI = normalize_redirect_uri(spotify_api.REDIRECT_URI)
+        _spotify_client = spotify_api.Client(logger)
+    return _spotify_client
 
 
 class ToolModel(BaseModel):
@@ -106,6 +113,7 @@ async def handle_call_tool(
     logger.info(f"Tool called: {name} with arguments: {arguments}")
     if not name.startswith("Spotify"):
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
+    spotify_client = get_spotify_client()
     try:
         match name[7:]:
             case "Playback":
