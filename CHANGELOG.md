@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0] - 2026-03-17
+
+### Architecture Rewrite
+- **Dropped `spotipy` dependency** -- uses `httpx` async directly for all Spotify API calls
+- **Dropped `python-dotenv` dependency** -- env vars are passed via MCP client config
+- **Consolidated to single module** -- merged `server.py`, `spotify_api.py`, `utils.py` into one file
+- **Switched to FastMCP** -- uses `@mcp.tool()` decorators instead of low-level Server API + ToolModel pattern
+- **Native async throughout** -- no more `asyncio.to_thread()` wrapping blocking calls
+- **Parallel genre fetching** -- `asyncio.gather` with semaphore instead of `ThreadPoolExecutor`
+- **Shared `httpx.AsyncClient`** -- connection pooling across all API calls
+- **Explicit OAuth flow** -- `spotify-mcp --auth` for initial token setup, auto-refresh on use
+- **Token cache** -- defaults to `~/.spotify_mcp_cache.json`, configurable via `SPOTIFY_CACHE_PATH`
+
+### Improvements
+- Cleaner error handling with user-friendly messages for common HTTP errors
+- Device auto-selection for playback (picks first available if none active)
+- Reduced total dependencies from 3 to 2 (mcp + httpx)
+
 ## [0.3.0] - 2026-02-28
 
 ### Spotify API Feb 2026 Migration

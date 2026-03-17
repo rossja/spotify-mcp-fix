@@ -1,8 +1,14 @@
-import asyncio
+import sys
+
 
 def main():
     """Main entry point for the package."""
-    from . import server
-    asyncio.run(server.main())
+    if "--auth" in sys.argv:
+        from .server import run_auth
+        run_auth()
+    else:
+        from .server import mcp
+        mcp.run()
 
-__all__ = ['main']
+
+__all__ = ["main"]
