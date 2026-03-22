@@ -489,7 +489,7 @@ async def spotify_playlist(
                     {"uri": f"spotify:track:{t}" if not t.startswith("spotify:") else t}
                     for t in track_ids
                 ]
-                await _delete(f"playlists/{playlist_id}/items", {"tracks": uris})
+                await _delete(f"playlists/{playlist_id}/items", {"items": uris})
                 return f"Removed {len(uris)} track(s) from playlist."
 
             case "change_details":
