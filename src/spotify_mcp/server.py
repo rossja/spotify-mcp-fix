@@ -620,6 +620,44 @@ async def spotify_recently_played(
         return _handle_error(e)
 
 
+@mcp.tool()
+async def spotify_devices(
+    action: str = Field(description="Action: 'list' or 'transfer'"),
+    device_id: Optional[str] = Field(
+        default=None, description="Device ID to transfer playback to (for 'transfer' action)"
+    ),
+) -> str:
+    """List available Spotify devices or transfer playback to a different device."""
+    try:
+        match action:
+            case "list":
+                data = await _get("me/player/devices")
+                devices = data.get("devices", []) if data else []
+                if not devices:
+                    return "No devices found. Open Spotify on a device first."
+                result = []
+                for d in devices:
+                    result.append({
+                        "id": d["id"],
+                        "name": d.get("name"),
+                        "type": d.get("type"),
+                        "is_active": d.get("is_active", False),
+                        "volume_percent": d.get("volume_percent"),
+                    })
+                return json.dumps(result, indent=2)
+
+            case "transfer":
+                if not device_id:
+                    return "Error: device_id is required. Use action 'list' to see available devices."
+                await _put("me/player", {"device_ids": [device_id]})
+                return f"Playback transferred to device {device_id}."
+
+            case _:
+                return f"Unknown action: {action}"
+    except Exception as e:
+        return _handle_error(e)
+
+
 # ── OAuth Auth Flow ──────────────────────────────────────────────────────────
 def run_auth():
     """Interactive OAuth flow. Run with: spotify-mcp --auth"""
