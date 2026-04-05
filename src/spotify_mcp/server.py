@@ -543,14 +543,16 @@ async def spotify_liked_songs(
             if not track_ids:
                 return "Error: track_ids is required."
             uris = [f"spotify:track:{t}" if not t.startswith("spotify:") else t for t in track_ids]
-            await _put("me/library", {"uris": uris})
+            uris_param = ",".join(uris)
+            await _api("PUT", f"me/library?uris={uris_param}")
             return f"Liked {len(uris)} track(s)."
 
         if action == "unlike":
             if not track_ids:
                 return "Error: track_ids is required."
             uris = [f"spotify:track:{t}" if not t.startswith("spotify:") else t for t in track_ids]
-            await _delete("me/library", {"uris": uris})
+            uris_param = ",".join(uris)
+            await _api("DELETE", f"me/library?uris={uris_param}")
             return f"Unliked {len(uris)} track(s)."
 
         if action not in ("get", "get_with_genres"):
