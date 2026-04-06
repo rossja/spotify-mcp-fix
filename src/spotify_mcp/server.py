@@ -132,7 +132,10 @@ async def _api(method: str, path: str, **kwargs) -> Optional[dict]:
     resp.raise_for_status()
     if resp.status_code == 204 or not resp.content:
         return None
-    return resp.json()
+    try:
+        return resp.json()
+    except (json.JSONDecodeError, ValueError):
+        return None
 
 
 async def _get(path: str, **params) -> Optional[dict]:
