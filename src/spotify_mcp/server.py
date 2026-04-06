@@ -52,6 +52,7 @@ SCOPES = " ".join([
     "user-read-playback-state",
     "user-modify-playback-state",
     "user-read-currently-playing",
+    "user-read-recently-played",
     "playlist-read-private",
     "playlist-read-collaborative",
     "playlist-modify-private",
@@ -593,6 +594,27 @@ async def spotify_liked_songs(
             for t in tracks:
                 t.pop("artist_ids", None)
 
+        return json.dumps({"total": len(tracks), "tracks": tracks}, indent=2)
+    except Exception as e:
+        return _handle_error(e)
+
+
+@mcp.tool()
+async def spotify_recently_played(
+    limit: int = Field(default=10, description="Number of recently played tracks to return (max 50)"),
+) -> str:
+    """Get the user's recently played tracks with timestamps."""
+    try:
+        limit = max(1, min(50, limit))
+        data = await _get("me/player/recently-played", limit=limit)
+        if not data or not data.get("items"):
+            return "No recently played tracks found."
+        tracks = []
+        for item in data["items"]:
+            track = _parse_track(item.get("track"))
+            if track:
+                track["played_at"] = item.get("played_at")
+                tracks.append(track)
         return json.dumps({"total": len(tracks), "tracks": tracks}, indent=2)
     except Exception as e:
         return _handle_error(e)
