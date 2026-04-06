@@ -281,14 +281,14 @@ async def _ensure_device() -> Optional[str]:
 # ── Tools ────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def spotify_playback(
-    action: str = Field(description="Action: 'get', 'start', 'pause', or 'skip'"),
+    action: str = Field(description="Action: 'get', 'start', 'pause', 'skip', or 'previous'"),
     spotify_uri: Optional[str] = Field(
         default=None,
         description="Spotify URI to play (e.g. spotify:track:xxx). For 'start' action.",
     ),
     num_skips: int = Field(default=1, description="Number of tracks to skip (for 'skip' action)"),
 ) -> str:
-    """Control Spotify playback - get current track, start/pause playback, or skip tracks."""
+    """Control Spotify playback - get current track, start/pause playback, skip, or go to previous track."""
     try:
         match action:
             case "get":
@@ -323,6 +323,10 @@ async def spotify_playback(
                 for _ in range(num_skips):
                     await _post("me/player/next")
                 return f"Skipped {num_skips} track(s)."
+
+            case "previous":
+                await _post("me/player/previous")
+                return "Skipped to previous track."
 
             case _:
                 return f"Unknown action: {action}"
