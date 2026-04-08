@@ -42,7 +42,7 @@ Claude <--MCP (stdio)--> spotify-mcp <--httpx async--> Spotify Web API
 | `spotify_queue` | `get`, `add` | View and manage play queue |
 | `spotify_get_info` | -- | Get detailed item info by Spotify URI |
 | `spotify_playlist` | `get`, `get_tracks`, `add_tracks`, `remove_tracks`, `change_details`, `create`, `delete` | Full playlist management |
-| `spotify_liked_songs` | `get`, `get_with_genres` | Retrieve saved songs with optional genres |
+| `spotify_liked_songs` | `get`, `get_with_genres`, `like`, `unlike`, `check` | Manage saved songs and check library |
 | `spotify_recently_played` | -- | Get recently played tracks with timestamps |
 | `spotify_devices` | `list`, `transfer` | List devices and transfer playback |
 
