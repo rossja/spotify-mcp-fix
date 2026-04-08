@@ -49,6 +49,7 @@ CACHE_PATH = os.environ.get(
 
 SCOPES = " ".join([
     "user-library-read",
+    "user-library-modify",
     "user-read-playback-state",
     "user-modify-playback-state",
     "user-read-currently-playing",
@@ -548,11 +549,42 @@ async def spotify_playlist(
 
 @mcp.tool()
 async def spotify_liked_songs(
-    action: str = Field(default="get", description="Action: 'get' or 'get_with_genres'"),
-    limit: int = Field(default=0, description="Max songs to return (0 = all)"),
+    action: str = Field(default="get", description="Action: 'get', 'get_with_genres', 'like', 'unlike', or 'check'"),
+    limit: int = Field(default=0, description="Max songs to return (0 = all, for 'get'/'get_with_genres')"),
+    track_ids: Optional[list[str]] = Field(default=None, description="Track IDs or URIs to like/unlike"),
 ) -> str:
-    """Get user's liked/saved songs, optionally with genre information."""
+    """Get user's liked/saved songs, or like/unlike tracks."""
     try:
+        if action == "like":
+            if not track_ids:
+                return "Error: track_ids is required."
+            uris = [f"spotify:track:{t}" if not t.startswith("spotify:") else t for t in track_ids]
+            uris_param = ",".join(uris)
+            await _api("PUT", f"me/library?uris={uris_param}")
+            return f"Liked {len(uris)} track(s)."
+
+        if action == "unlike":
+            if not track_ids:
+                return "Error: track_ids is required."
+            uris = [f"spotify:track:{t}" if not t.startswith("spotify:") else t for t in track_ids]
+            uris_param = ",".join(uris)
+            await _api("DELETE", f"me/library?uris={uris_param}")
+            return f"Unliked {len(uris)} track(s)."
+
+        if action == "check":
+            if not track_ids:
+                return "Error: track_ids is required."
+            uris = [f"spotify:track:{t}" if not t.startswith("spotify:") else t for t in track_ids]
+            uris_param = ",".join(uris)
+            data = await _get(f"me/library/contains", uris=uris_param)
+            if not data:
+                return "Error: could not check library."
+            results = {uri: liked for uri, liked in zip(uris, data)}
+            return json.dumps(results, indent=2)
+
+        if action not in ("get", "get_with_genres"):
+            return f"Unknown action: {action}"
+
         tracks = []
         offset = 0
         while True:
