@@ -282,14 +282,15 @@ async def _ensure_device() -> Optional[str]:
 # ── Tools ────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def spotify_playback(
-    action: str = Field(description="Action: 'get', 'start', 'pause', 'skip', or 'previous'"),
+    action: str = Field(description="Action: 'get', 'start', 'pause', 'skip', 'previous', or 'volume'"),
     spotify_uri: Optional[str] = Field(
         default=None,
         description="Spotify URI to play (e.g. spotify:track:xxx). For 'start' action.",
     ),
     num_skips: int = Field(default=1, description="Number of tracks to skip (for 'skip' action)"),
+    volume_percent: Optional[int] = Field(default=None, description="Volume level 0-100 (for 'volume' action)"),
 ) -> str:
-    """Control Spotify playback - get current track, start/pause playback, skip, or go to previous track."""
+    """Control Spotify playback - get current track, start/pause/skip, go to previous track, or set volume."""
     try:
         match action:
             case "get":
@@ -328,6 +329,13 @@ async def spotify_playback(
             case "previous":
                 await _post("me/player/previous")
                 return "Skipped to previous track."
+
+            case "volume":
+                if volume_percent is None:
+                    return "Error: volume_percent is required (0-100)."
+                vol = max(0, min(100, volume_percent))
+                await _put(f"me/player/volume?volume_percent={vol}")
+                return f"Volume set to {vol}%."
 
             case _:
                 return f"Unknown action: {action}"
